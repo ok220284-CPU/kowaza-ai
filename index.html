@@ -1,40 +1,314 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>kowaza-ai</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
-      background: #fff;
-      color: #333;
-      padding: 20px;
-      min-height: 100vh;
-    }
-    h1 {
-      font-size: 28px;
-      margin-bottom: 16px;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#fb6a85">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KOWAZA AI">
+<title>KOWAZA AI - ソフトボール小技 AI コーチ</title>
+<meta name="description" content="動画をアップするだけで、スラップ・セーフティ・バスター・プッシュをAIが診断。ソフトボールの小技を上達させよう。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="KOWAZA AI - ソフトボール小技 AI コーチ">
+<meta property="og:description" content="動画アップで AI が小技を診断。スラップ・セーフティ・バスター・プッシュ対応。">
+<meta property="og:image" content="icons/icon-512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --pink:#fb6a85; --pink-light:#ffb0bf; --peach:#ffa07a;
+    --bg:#fff8f9; --card:#fff; --text:#2d1b2e; --text-dim:#7a6470;
+    --border:#f0d8df; --accent:#fb6a85; --ok:#5dba8a; --warn:#f5a25d; --ng:#e36363;
+  }
+  html,body{height:100%}
+  body{
+    font-family:"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic","Helvetica Neue",sans-serif;
+    background:var(--bg);color:var(--text);min-height:100dvh;
+    padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:560px;margin:0 auto;padding:18px 16px 60px}
+  .hdr{text-align:center;padding:18px 0 26px}
+  .hdr-icon{width:72px;height:72px;border-radius:18px;display:block;margin:0 auto 10px;box-shadow:0 6px 20px rgba(251,106,133,0.25)}
+  .hdr h1{font-size:26px;font-weight:900;letter-spacing:6px;background:linear-gradient(135deg,var(--pink),var(--peach));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .hdr p{font-size:11px;color:var(--text-dim);margin-top:4px;letter-spacing:2px}
+
+  .step-title{font-size:13px;font-weight:800;letter-spacing:2px;color:var(--accent);margin:24px 0 12px;display:flex;align-items:center;gap:8px}
+  .step-title .num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--pink);color:#fff;font-size:11px;font-weight:900;letter-spacing:0}
+
+  .tech-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .tech-card{background:var(--card);border:2px solid var(--border);border-radius:16px;padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s;font-family:inherit}
+  .tech-card:active{transform:scale(.96)}
+  .tech-card.on{border-color:var(--pink);background:#fff0f3;box-shadow:0 4px 14px rgba(251,106,133,0.15)}
+  .tech-card .te{font-size:36px;line-height:1.1}
+  .tech-card .tn{font-size:15px;font-weight:800;margin-top:6px}
+  .tech-card .td{font-size:10px;color:var(--text-dim);margin-top:4px;letter-spacing:1px}
+
+  .ball-row{display:none;gap:10px;margin-top:10px}
+  .ball-row.show{display:flex}
+  .ball-btn{flex:1;background:var(--card);border:2px solid var(--border);padding:12px;border-radius:12px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;color:var(--text-dim);transition:all .2s}
+  .ball-btn.on{border-color:var(--pink);background:#fff0f3;color:var(--text)}
+
+  .upload-zone{margin-top:8px;border:2px dashed var(--border);border-radius:16px;padding:24px 16px;text-align:center;background:var(--card);cursor:pointer;transition:all .2s}
+  .upload-zone:active{transform:scale(.98)}
+  .upload-zone.has-file{border-color:var(--ok);background:#f4faf6;border-style:solid}
+  .upload-zone .ui{font-size:36px;margin-bottom:6px}
+  .upload-zone .ut{font-size:13px;color:var(--text-dim);font-weight:700}
+  .upload-zone .ud{font-size:10px;color:var(--text-dim);margin-top:4px}
+  .upload-zone.has-file .ut{color:var(--text);font-size:14px}
+  #video-preview{display:none;width:100%;max-height:280px;margin-top:10px;border-radius:12px;background:#000}
+
+  .submit-btn{width:100%;background:linear-gradient(135deg,var(--pink),var(--peach));color:#fff;border:none;padding:16px;border-radius:14px;font-size:15px;font-weight:900;letter-spacing:3px;font-family:inherit;cursor:pointer;margin-top:20px;box-shadow:0 6px 20px rgba(251,106,133,0.3);transition:all .2s}
+  .submit-btn:active{transform:scale(.98)}
+  .submit-btn:disabled{background:#e0d0d3;box-shadow:none;cursor:not-allowed}
+  .submit-btn.loading{pointer-events:none}
+
+  .result-box{margin-top:24px;background:var(--card);border-radius:16px;padding:20px 16px;border:1px solid var(--border);display:none}
+  .result-box.show{display:block;animation:slideUp .4s ease-out}
+  @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+  .result-summary{display:flex;align-items:center;gap:18px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+  .score-circle{flex-shrink:0;width:90px;height:90px;border-radius:50%;background:conic-gradient(var(--pink) calc(var(--pct,0)*1%),#f0e0e3 0);display:flex;align-items:center;justify-content:center;position:relative}
+  .score-circle::before{content:'';position:absolute;inset:6px;background:#fff;border-radius:50%}
+  .score-num{position:relative;font-size:24px;font-weight:900;color:var(--text)}
+  .score-num small{font-size:11px;color:var(--text-dim);font-weight:600}
+  .summary-text{flex:1;font-size:13px;line-height:1.6;color:var(--text-dim)}
+  .summary-text b{color:var(--text)}
+
+  .criteria-list{margin-top:16px}
+  .criteria-item{padding:10px 0;border-bottom:1px dashed var(--border)}
+  .criteria-item:last-child{border-bottom:none}
+  .crit-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+  .crit-name{font-size:13px;font-weight:700;color:var(--text)}
+  .crit-score{font-size:14px;font-weight:900;letter-spacing:1px}
+  .crit-score.ok{color:var(--ok)}
+  .crit-score.warn{color:var(--warn)}
+  .crit-score.ng{color:var(--ng)}
+  .crit-comment{font-size:12px;color:var(--text-dim);line-height:1.6}
+  .crit-bar{height:5px;background:#f0e0e3;border-radius:3px;margin:6px 0;overflow:hidden}
+  .crit-bar-fill{height:100%;background:var(--pink);border-radius:3px}
+
+  .next-practice{margin-top:18px;background:#fff8e8;padding:14px;border-radius:12px;border-left:4px solid #f5a25d}
+  .next-title{font-size:12px;font-weight:800;color:#a65f1b;letter-spacing:1px;margin-bottom:8px}
+  .next-list{list-style:none;display:flex;flex-direction:column;gap:6px}
+  .next-list li{font-size:12px;color:#5a3a18;line-height:1.5;padding-left:18px;position:relative}
+  .next-list li::before{content:'▸';position:absolute;left:0;color:#f5a25d;font-weight:bold}
+
+  .note-text{font-size:11px;color:var(--text-dim);text-align:center;margin-top:14px;line-height:1.6}
+  .note-text a{color:var(--accent);text-decoration:underline}
+
+  .err-box{background:#fff2f2;border:1px solid #f5b8b8;color:#9b3838;padding:12px;border-radius:10px;font-size:12px;margin-top:12px;display:none}
+  .err-box.show{display:block}
+
+  .loader{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;margin-right:8px;vertical-align:-2px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  footer{text-align:center;font-size:10px;color:var(--text-dim);margin-top:36px;letter-spacing:1px}
+  footer a{color:var(--accent)}
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>🤖 kowaza-ai</h1>
-    <p>新規プロジェクトの準備ができました。</p>
+
+<div class="wrap">
+  <div class="hdr">
+    <img src="icons/icon-180.png" alt="KOWAZA AI" class="hdr-icon">
+    <h1>KOWAZA AI</h1>
+    <p>ソフトボール 小技 AI コーチ</p>
   </div>
-  <script>
-    // ここにJavaScriptを書く
-  </script>
+
+  <div class="step-title"><span class="num">1</span>技を選ぶ</div>
+  <div class="tech-grid" id="tech-grid">
+    <button class="tech-card" data-tech="slap">
+      <div class="te">⚾💨</div>
+      <div class="tn">スラップ</div>
+      <div class="td">走りながら打つ</div>
+    </button>
+    <button class="tech-card" data-tech="safety">
+      <div class="te">🤫</div>
+      <div class="tn">セーフティ</div>
+      <div class="td">バントで内野安打</div>
+    </button>
+    <button class="tech-card" data-tech="buster">
+      <div class="te">⚡</div>
+      <div class="tn">バスター</div>
+      <div class="td">バントから強打</div>
+    </button>
+    <button class="tech-card" data-tech="push">
+      <div class="te">↗️</div>
+      <div class="tn">プッシュ</div>
+      <div class="td">一二塁間を狙う</div>
+    </button>
+  </div>
+
+  <div class="ball-row" id="ball-row">
+    <button class="ball-btn on" data-ball="rubber">🟡 ゴムボール</button>
+    <button class="ball-btn" data-ball="leather">🟠 革ボール</button>
+  </div>
+
+  <div class="step-title"><span class="num">2</span>動画をアップ</div>
+  <div class="upload-zone" id="upload-zone">
+    <input type="file" id="video-input" accept="video/*" style="display:none">
+    <div class="ui">📹</div>
+    <div class="ut">タップして動画を選ぶ</div>
+    <div class="ud">5〜15秒、横向き推奨。最大20MB</div>
+  </div>
+  <video id="video-preview" controls playsinline></video>
+
+  <button class="submit-btn" id="submit-btn" disabled>
+    AIに見てもらう
+  </button>
+
+  <div class="err-box" id="err"></div>
+
+  <div class="result-box" id="result">
+    <div class="result-summary">
+      <div class="score-circle" id="score-circle">
+        <div class="score-num"><span id="score-num">0</span><small>/100</small></div>
+      </div>
+      <div class="summary-text" id="summary-text"></div>
+    </div>
+    <div class="criteria-list" id="criteria-list"></div>
+    <div class="next-practice">
+      <div class="next-title">▼ 次の練習で意識すること</div>
+      <ul class="next-list" id="next-list"></ul>
+    </div>
+  </div>
+
+  <div class="note-text">
+    動画は分析後、サーバーに保存されません。<br>
+    ※ AIによる解析は参考情報です。最終判断はコーチや経験者と相談してください。
+  </div>
+
+  <footer>
+    powered by Gemini 2.5 Pro · made with ❤ by SAKAI HOMIES
+  </footer>
+</div>
+
+<script>
+let selectedTech = null;
+let selectedBall = 'rubber';
+let videoFile = null;
+
+const techGrid = document.getElementById('tech-grid');
+const ballRow = document.getElementById('ball-row');
+const uploadZone = document.getElementById('upload-zone');
+const videoInput = document.getElementById('video-input');
+const videoPreview = document.getElementById('video-preview');
+const submitBtn = document.getElementById('submit-btn');
+const errBox = document.getElementById('err');
+const resultBox = document.getElementById('result');
+
+function updateButton() {
+  submitBtn.disabled = !(selectedTech && videoFile);
+}
+
+techGrid.querySelectorAll('.tech-card').forEach(b => {
+  b.addEventListener('click', () => {
+    techGrid.querySelectorAll('.tech-card').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    selectedTech = b.dataset.tech;
+    ballRow.classList.toggle('show', selectedTech === 'slap');
+    updateButton();
+  });
+});
+
+ballRow.querySelectorAll('.ball-btn').forEach(b => {
+  b.addEventListener('click', () => {
+    ballRow.querySelectorAll('.ball-btn').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    selectedBall = b.dataset.ball;
+  });
+});
+
+uploadZone.addEventListener('click', () => videoInput.click());
+videoInput.addEventListener('change', () => {
+  const f = videoInput.files[0];
+  if (!f) return;
+  if (f.size > 20 * 1024 * 1024) {
+    showError('動画が大きすぎます（20MBまで）。短く撮り直してください。');
+    return;
+  }
+  videoFile = f;
+  uploadZone.classList.add('has-file');
+  uploadZone.querySelector('.ut').textContent = f.name;
+  uploadZone.querySelector('.ud').textContent = `${(f.size/(1024*1024)).toFixed(1)} MB`;
+  videoPreview.src = URL.createObjectURL(f);
+  videoPreview.style.display = 'block';
+  hideError();
+  updateButton();
+});
+
+submitBtn.addEventListener('click', analyze);
+
+function showError(msg) {
+  errBox.textContent = '⚠ ' + msg;
+  errBox.classList.add('show');
+}
+function hideError() { errBox.classList.remove('show'); }
+
+async function analyze() {
+  if (!selectedTech || !videoFile) return;
+  hideError();
+  resultBox.classList.remove('show');
+  submitBtn.classList.add('loading');
+  submitBtn.innerHTML = '<span class="loader"></span>解析中...（30〜60秒）';
+
+  try {
+    const fd = new FormData();
+    fd.append('video', videoFile);
+    fd.append('technique', selectedTech);
+    fd.append('ballType', selectedBall);
+
+    const r = await fetch('/api/analyze', { method: 'POST', body: fd });
+    if (!r.ok) {
+      const t = await r.text();
+      throw new Error('サーバー応答: ' + r.status + ' / ' + t.slice(0, 200));
+    }
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.message || '解析失敗');
+    renderResult(d.result);
+  } catch (e) {
+    showError('解析失敗: ' + e.message);
+  } finally {
+    submitBtn.classList.remove('loading');
+    submitBtn.innerHTML = 'もう一度AIに見てもらう';
+  }
+}
+
+function renderResult(r) {
+  document.getElementById('score-num').textContent = r.totalScore;
+  document.getElementById('score-circle').style.setProperty('--pct', r.totalScore);
+  document.getElementById('summary-text').innerHTML = r.summary;
+
+  const cl = document.getElementById('criteria-list');
+  cl.innerHTML = (r.criteria || []).map(c => {
+    const sc = c.score || 0;
+    const cls = sc >= 75 ? 'ok' : sc >= 50 ? 'warn' : 'ng';
+    return `<div class="criteria-item">
+      <div class="crit-head">
+        <span class="crit-name">${escapeHtml(c.name)}</span>
+        <span class="crit-score ${cls}">${sc}<small style="font-size:10px;color:#999;font-weight:600">/100</small></span>
+      </div>
+      <div class="crit-bar"><div class="crit-bar-fill" style="width:${sc}%;background:${cls === 'ok' ? '#5dba8a' : cls === 'warn' ? '#f5a25d' : '#e36363'}"></div></div>
+      <div class="crit-comment">${escapeHtml(c.comment)}</div>
+    </div>`;
+  }).join('');
+
+  const nl = document.getElementById('next-list');
+  nl.innerHTML = (r.nextPractice || []).map(n => `<li>${escapeHtml(n)}</li>`).join('');
+
+  resultBox.classList.add('show');
+  resultBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+</script>
 </body>
 </html>
