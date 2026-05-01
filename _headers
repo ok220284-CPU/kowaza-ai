@@ -1,0 +1,8 @@
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+/
+  Cache-Control: public, max-age=0, must-revalidate
+/api/*
+  Cache-Control: no-store
+/icons/*
+  Cache-Control: public, max-age=86400
